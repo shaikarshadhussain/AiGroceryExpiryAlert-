@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard – AI Grocery Expiry Alert</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body>
+
+<nav>
+  <a class="nav-brand" href="/">
+    <span class="icon">🛒</span>
+    AI Grocery Expiry Alert
+  </a>
+  <div class="nav-links">
+    <a href="/">🔍 Scanner</a>
+    <a href="/billing">🧾 Billing</a>
+    <a href="/admin">⚙️ Admin</a>
+    <a href="/dashboard" class="active">📊 Dashboard</a>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="page-title">📊 Store Dashboard</div>
+  <div class="page-subtitle">Real-time overview of inventory expiry status powered by AI analysis.</div>
+
+  <!-- Stat Cards -->
+  <div class="stats-grid" id="stats-grid">
+    <div class="stat-card total">
+      <div class="stat-icon">📦</div>
+      <div class="stat-info">
+        <div class="value" id="stat-total">–</div>
+        <div class="label">Total Products</div>
+      </div>
+    </div>
+    <div class="stat-card valid">
+      <div class="stat-icon">✅</div>
+      <div class="stat-info">
+        <div class="value" id="stat-valid">–</div>
+        <div class="label">Valid Products</div>
+      </div>
+    </div>
+    <div class="stat-card expiring">
+      <div class="stat-icon">⚠️</div>
+      <div class="stat-info">
+        <div class="value" id="stat-expiring">–</div>
+        <div class="label">Expiring Within 3 Days</div>
+      </div>
+    </div>
+    <div class="stat-card expired">
+      <div class="stat-icon">🔴</div>
+      <div class="stat-info">
+        <div class="value" id="stat-expired">–</div>
+        <div class="label">Expired Products</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI Alerts Section -->
+  <div id="ai-alerts" style="margin-bottom:24px"></div>
+
+  <!-- Product Sections -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px">
+
+    <div class="card">
+      <div class="card-title">🔴 Expired Products</div>
+      <div id="expired-list">
+        <div style="text-align:center;color:#999;padding:20px">Loading…</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🟠 Expiring Soon (≤3 days)</div>
+      <div id="expiring-list">
+        <div style="text-align:center;color:#999;padding:20px">Loading…</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- All Products -->
+  <div class="card">
+    <div class="card-title" style="display:flex;justify-content:space-between">
+      <span>📋 All Products</span>
+      <button onclick="loadDashboard()" class="btn btn-ghost btn-sm">🔄 Refresh</button>
+    </div>
+    <div id="all-products-list">
+      <div style="text-align:center;color:#999;padding:20px">Loading…</div>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+async function loadDashboard() {
+  try {
+    const [all, expired, expiringSoon] = await Promise.all([
+      fetch('/products').then(r => r.json()),
+      fetch('/expired-products').then(r => r.json()),
+      fetch('/expiring-soon').then(r => r.json())
+    ]);
+
+    const valid = all.filter(p => p.status === 'valid');
+
+    // ── Stats ──────────────────────────────────────────────────────────────
+    document.getElementById('stat-total').textContent    = all.length;
+    document.getElementById('stat-valid').textContent    = valid.length;
+    document.getElementById('stat-expiring').textContent = expiringSoon.length;
+    document.getElementById('stat-expired').textContent  = expired.length;
+
+    // ── AI Alerts ──────────────────────────────────────────────────────────
+    const alertsEl = document.getElementById('ai-alerts');
+    let alertsHtml = '';
+
+    if (expired.length > 0) {
+      alertsHtml += `<div class="alert alert-error" style="margin-bottom:8px">
+        ⛔ <strong>AI Alert:</strong> ${expired.length} expired product(s) detected. Remove them from shelves immediately!
+      </div>`;
+    }
+    if (expiringSoon.length > 0) {
+      alertsHtml += `<div class="alert alert-warning" style="margin-bottom:8px">
+        ⚠️ <strong>AI Warning:</strong> ${expiringSoon.length} product(s) will expire within 3 days. Prioritise selling these!
+      </div>`;
+    }
+    if (expired.length === 0 && expiringSoon.length === 0 && all.length > 0) {
+      alertsHtml = `<div class="alert alert-success">✅ <strong>AI Status:</strong> All products are fresh and within expiry. Inventory is healthy!</div>`;
+    }
+    alertsEl.innerHTML = alertsHtml;
+
+    // ── Expired list ───────────────────────────────────────────────────────
+    renderProductCards('expired-list', expired, 'expired');
+
+    // ── Expiring soon list ─────────────────────────────────────────────────
+    renderProductCards('expiring-list', expiringSoon, 'expiring');
+
+    // ── All products ───────────────────────────────────────────────────────
+    if (all.length === 0) {
+      document.getElementById('all-products-list').innerHTML = `
+        <div class="empty-state"><div class="empty-icon">📦</div><p>No products added yet. <a href="/admin">Go to Admin</a> to add products.</p></div>`;
+      return;
+    }
+
+    const grid = document.createElement('div');
+    grid.className = 'product-list-grid';
+
+    all.forEach(p => {
+      const statusBadge =
+        p.status === 'expired'       ? `<span class="badge badge-expired">Expired</span>` :
+        p.status === 'expiring_soon' ? `<span class="badge badge-expiring">Expiring Soon</span>` :
+                                       `<span class="badge badge-valid">Valid</span>`;
+      const card = document.createElement('div');
+      card.className = 'plist-card';
+      card.innerHTML = `
+        <div class="name">${p.name} ${statusBadge}</div>
+        <div class="meta">
+          <div>📦 ${p.barcode}</div>
+          <div>💰 ₹${p.price}</div>
+          <div>📅 Expiry: ${p.expiry}</div>
+        </div>`;
+      grid.appendChild(card);
+    });
+
+    document.getElementById('all-products-list').innerHTML = '';
+    document.getElementById('all-products-list').appendChild(grid);
+
+  } catch(err) {
+    console.error(err);
+    document.getElementById('ai-alerts').innerHTML =
+      `<div class="alert alert-error">❌ Failed to load dashboard. Is the Flask server running?</div>`;
+  }
+}
+
+function renderProductCards(containerId, products, type) {
+  const el = document.getElementById(containerId);
+  if (products.length === 0) {
+    el.innerHTML = `<div class="empty-state" style="padding:20px"><div class="empty-icon">${type === 'expired' ? '✅' : '🎉'}</div><p>No ${type === 'expired' ? 'expired' : 'expiring soon'} products.</p></div>`;
+    return;
+  }
+  el.innerHTML = products.map(p => `
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #eee">
+      <div>
+        <div style="font-weight:600">${p.name}</div>
+        <div style="font-size:0.8rem;color:#999">${p.barcode} · ₹${p.price}</div>
+      </div>
+      <div style="text-align:right;font-size:0.82rem;color:${type === 'expired' ? 'var(--red)' : 'var(--orange)'}">
+        📅 ${p.expiry}
+      </div>
+    </div>`).join('');
+}
+
+loadDashboard();
+</script>
+</body>
+</html>

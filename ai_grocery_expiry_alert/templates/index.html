@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Barcode Scanner – AI Grocery Expiry Alert</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+  <!-- QuaggaJS CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
+</head>
+<body>
+
+<nav>
+  <a class="nav-brand" href="/">
+    <span class="icon">🛒</span>
+    AI Grocery Expiry Alert
+  </a>
+  <div class="nav-links">
+    <a href="/" class="active">🔍 Scanner</a>
+    <a href="/billing">🧾 Billing <span id="cart-badge" style="background:#f39c12;color:#fff;border-radius:50%;padding:1px 6px;font-size:0.75rem;margin-left:2px;display:none">0</span></a>
+    <a href="/admin">⚙️ Admin</a>
+    <a href="/dashboard">📊 Dashboard</a>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="page-title">🔍 Barcode Scanner</div>
+  <div class="page-subtitle">Scan a product barcode to check its expiry status using AI logic.</div>
+
+  <div class="scanner-layout">
+    <!-- Left: Camera -->
+    <div class="card">
+      <div class="card-title">📷 Camera Scanner</div>
+
+      <div id="scanner-viewport">
+        <div class="scanner-overlay">
+          <div class="scan-frame"></div>
+        </div>
+        <div class="scan-line"></div>
+      </div>
+
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button id="start-scan-btn" class="btn btn-primary" style="flex:1">▶ Start Camera</button>
+        <button id="stop-scan-btn"  class="btn btn-red hidden" style="flex:1">⏹ Stop Camera</button>
+      </div>
+
+      <p id="scan-status" style="text-align:center;color:#7f8c8d;font-size:0.85rem;margin-top:8px">
+        Click "Start Camera" to begin scanning.
+      </p>
+
+      <div class="receipt-divider" style="margin:14px 0"></div>
+
+      <div class="card-title">⌨️ Manual Barcode Input</div>
+      <form id="manual-form" class="manual-input">
+        <input type="text" id="barcode-input" placeholder="Enter barcode number…" autocomplete="off" />
+        <button type="submit" class="btn btn-primary">🔎 Search</button>
+      </form>
+      <p style="font-size:0.78rem;color:#999;margin-top:6px">
+        Try: <code style="cursor:pointer" onclick="document.getElementById('barcode-input').value='8901234567890'">8901234567890</code>
+        · <code style="cursor:pointer" onclick="document.getElementById('barcode-input').value='8901111111111'">8901111111111</code>
+        · <code style="cursor:pointer" onclick="document.getElementById('barcode-input').value='8909876543210'">8909876543210</code>
+      </p>
+    </div>
+
+    <!-- Right: Result -->
+    <div>
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-title">🤖 AI Expiry Detection</div>
+        <div id="product-result">
+          <div class="empty-state">
+            <div class="empty-icon">📦</div>
+            <p>Scan a barcode or enter one manually to see product details here.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🧠 How AI Logic Works</div>
+        <div style="font-size:0.85rem;line-height:1.9;color:#555">
+          <div>🔴 <strong>Expired:</strong> Expiry date < Today → <em>Block billing</em></div>
+          <div>🟠 <strong>Expiring Soon:</strong> Within 3 days → <em>Warn & allow</em></div>
+          <div>🟢 <strong>Valid:</strong> More than 3 days left → <em>Normal billing</em></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+<script src="{{ url_for('static', filename='scanner.js') }}"></script>
+</body>
+</html>

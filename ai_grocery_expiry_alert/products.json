@@ -1,0 +1,38 @@
+[
+  {
+    "barcode": "8901234567890",
+    "name": "Milk",
+    "price": 50,
+    "expiry": "2026-03-15"
+  },
+  {
+    "barcode": "8909876543210",
+    "name": "Bread",
+    "price": 40,
+    "expiry": "2026-03-11"
+  },
+  {
+    "barcode": "8901111111111",
+    "name": "Butter",
+    "price": 120,
+    "expiry": "2026-02-28"
+  },
+  {
+    "barcode": "8902222222222",
+    "name": "Cheese",
+    "price": 200,
+    "expiry": "2026-04-01"
+  },
+  {
+    "barcode": "8903333333333",
+    "name": "Yogurt",
+    "price": 60,
+    "expiry": "2026-03-12"
+  },
+  {
+    "barcode": "8901719135477",
+    "name": "Parle biscuit",
+    "price": 120,
+    "expiry": "2026-08-30"
+  }
+]

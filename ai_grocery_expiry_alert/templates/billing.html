@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Billing – AI Grocery Expiry Alert</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+  <style>
+    @media print {
+      nav, .no-print { display: none !important; }
+      #bill-receipt  { display: block !important; }
+      body           { background: #fff; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-brand" href="/">
+    <span class="icon">🛒</span>
+    AI Grocery Expiry Alert
+  </a>
+  <div class="nav-links">
+    <a href="/">🔍 Scanner</a>
+    <a href="/billing" class="active">🧾 Billing</a>
+    <a href="/admin">⚙️ Admin</a>
+    <a href="/dashboard">📊 Dashboard</a>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="page-title">🧾 Billing System</div>
+  <div class="page-subtitle">Review cart items and generate a bill. Expired products are blocked by the AI system.</div>
+
+  <div class="alert alert-info no-print" style="margin-bottom:20px">
+    💡 Add products by scanning barcodes on the <a href="/" style="color:inherit;font-weight:700">Scanner page</a>. Only valid & expiring-soon products can be added.
+  </div>
+
+  <!-- Empty State -->
+  <div id="cart-empty" class="card" style="text-align:center;padding:40px">
+    <div style="font-size:3rem;margin-bottom:12px">🛒</div>
+    <h3 style="color:#555;margin-bottom:8px">Your cart is empty</h3>
+    <p style="color:#999;margin-bottom:20px">Scan products on the Scanner page to add them here.</p>
+    <a href="/" class="btn btn-primary">🔍 Go to Scanner</a>
+  </div>
+
+  <!-- Cart Table -->
+  <div id="cart-section" style="display:none">
+    <div class="card">
+      <div class="card-title" style="display:flex;justify-content:space-between">
+        <span>🛒 Cart Items</span>
+        <div class="flex gap-2">
+          <button id="clear-cart-btn" class="btn btn-ghost btn-sm no-print">🗑️ Clear Cart</button>
+          <button id="generate-bill-btn" class="btn btn-green btn-sm no-print" disabled>🧾 Generate Bill</button>
+        </div>
+      </div>
+
+      <div style="overflow-x:auto">
+        <table class="bill-table">
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Price</th>
+              <th>Quantity</th>
+              <th>Total</th>
+              <th class="no-print">Remove</th>
+            </tr>
+          </thead>
+          <tbody id="cart-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div style="display:flex;justify-content:flex-end;gap:12px;margin-top:16px" class="no-print">
+      <a href="/" class="btn btn-ghost">➕ Add More Items</a>
+      <button id="print-bill-btn" class="btn btn-primary">🖨️ Print Bill</button>
+    </div>
+  </div>
+
+  <!-- Bill Receipt -->
+  <div id="bill-receipt"></div>
+</div>
+
+<div id="toast"></div>
+<script src="{{ url_for('static', filename='billing.js') }}"></script>
+</body>
+</html>
